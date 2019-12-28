@@ -37,7 +37,7 @@ int main(){
 		write(client_socket,body,sizeof(body));
 
 		close(client_socket);
-		close(client_socket);
+		close(server_socket);
 
 		return 0;
 }
