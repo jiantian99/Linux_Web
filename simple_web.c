@@ -20,13 +20,13 @@ int main(){
 		bind(server_socket, (struct sockaddr *)&server_addr,sizeof(server_addr));
 
 		listen(server_socket,5);
-
+		while(1){
 		int client_socket=accept(server_socket,NULL,NULL);
 
-		char buf[1024];
-		read(client_socket,buf,1024);
+		//char buf[1024];
+		//read(client_socket,buf,1024);
 
-		printf("%s",buf);
+		//printf("%s",buf);
 
 		char status[] = "HTTP/1.0 200 OK\r\n";
 		char header[] = "Server: DWBServer\r\nContent-Type: text/html;charset=utf-8\r\n\r\n";
@@ -38,6 +38,6 @@ int main(){
 
 		close(client_socket);
 		close(server_socket);
-
+		}
 		return 0;
 }
