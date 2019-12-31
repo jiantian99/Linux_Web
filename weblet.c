@@ -1,16 +1,4 @@
-#include <stdio.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
 #include "head_file.h"
-
 
 void process_trans(int fd);
 void read_requesthdrs(rio_t *rp);
@@ -42,5 +30,48 @@ int main(int argc,char **argv)
 				close(conn_sock);
 		}
 }
+
+void process_trans(int fd)
+{
+		int static_flag;
+		struct stat sbuf;
+		char buf[MAXLINE],method[MAXLINE],uri[MAXLINE],version[MAXLINE];
+
+		char filename[MAXLINE],cgiargs[MAXLINE];
+		rio_t rio;
+
+		rio_readinitb(&rio,fd);
+		rio_readlineb(&rio,buf,MAXLINE);
+		sscanf(buf,"%s %s %s",method,uri,version);
+		if(strcasecmp(method,"GET")){
+				error_request(fd,method,"501","Not Implemented","weblet does not implement this method");
+				return;
+		}
+		read_requesthdrs(&rio);
+
+		static_flag=is_static(uri);
+		if(static_flag)
+				parse_static_uri(uri,filename);
+		//else
+
+
+		if(stat(filename,&sbuf)<0){
+				error_request(fd,filename,"404","Not found","weblet could not find this file");
+				return;
+		}
+
+		if(static_flag){
+				if(!(S_ISREG(sbuf.st_mode))||(S_IRUSR&sbuf.st_mode)){
+						error_request(fd,filename,"403","Forbidden","weblet is not permtted to read the file");
+						return;
+				}
+				feed_static(fd,filename,sbuf.st_size);
+		}
+		//else  
+
+
+}
+
+
 
 
