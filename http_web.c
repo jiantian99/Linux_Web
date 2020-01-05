@@ -9,8 +9,9 @@ int main(void)
 		socklen_t client_name_len = sizeof(client_name);
 		
 
-		server_sock= startup(&port);
-		printf("http_web running on port %d\n",port);
+		server_sock= start_up(&port);
+		printf("http_web running on localhost:%d\n",port);
+		printf("Enter Ctrl-C to shut down the server!\n");
 
 		while(1)
 		{
@@ -19,12 +20,13 @@ int main(void)
 						error_die("accept");
 				accept_request(client_sock);
 		}
+
 		close(server_sock);
 		
 		return 0;
 }
 
-int startup(u_short *port)
+int start_up(u_short *port)
 {
 		int httpd=0;
 		struct sockaddr_in name;
@@ -108,7 +110,7 @@ void accept_request(int client)
 				}
 		}
 
-		sprintf(path,"htdocs%s",url);
+		sprintf(path,"cgi-bin%s",url);
 		if(path[strlen(path)-1]=='/')
 				strcat(path,"index.html");
 		if(stat(path,&st)==-1)
@@ -126,12 +128,12 @@ void accept_request(int client)
 				if(!cgi)
 						serve_file(client,path);
 				else
-						execute_cgi(client,path,method,query_string);
+						run_cgi(client,path,method,query_string);
 		}
 		close(client);
 }	
 
-void execute_cgi(int client,const char *path,const char *method,const char *query_string)
+void run_cgi(int client,const char *path,const char *method,const char *query_string)
 {
 		char buf[1024];
 		int cgi_output[2];
@@ -168,18 +170,18 @@ void execute_cgi(int client,const char *path,const char *method,const char *quer
 
 		if(pipe(cgi_output)<0)
 		{
-				cannot_execute(client);
+				cannot_run(client);
 				return;
 		}
 		if(pipe(cgi_input)<0)
 		{
-				cannot_execute(client);
+				cannot_run(client);
 				return;
 		}
 
 		if((pid=fork())<0)
 		{
-				cannot_execute(client);
+				cannot_run(client);
 				return;
 		}
 
@@ -257,7 +259,7 @@ void cat(int client,FILE *resource)
 		}
 }
 
-void cannot_execute(int client)
+void cannot_run(int client)
 {
 		char buf[1024];
 
@@ -337,12 +339,13 @@ void not_found(int client)
         send(client, buf, strlen(buf), 0);  
         sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");  
         send(client, buf, strlen(buf), 0);  
-        sprintf(buf, "<BODY><P>The server could not fulfill\r\n");  
+        sprintf(buf, "<BODY><h1>404\r\n");
+		send(client, buf, strlen(buf),0);
+		sprintf(buf,"<P>The server could not fulfill\r\n");  
         send(client, buf, strlen(buf), 0);  
-        sprintf(buf, "your request because the resource specified\r\n");  
+        sprintf(buf, "your request!\r\n");  
         send(client, buf, strlen(buf), 0);  
-        sprintf(buf, "is unavailable or nonexistent.\r\n");  
-        send(client, buf, strlen(buf), 0);  
+          
         sprintf(buf, "</BODY></HTML>\r\n");  
         send(client, buf, strlen(buf), 0);  	
 }
