@@ -6,6 +6,7 @@ int main(void)
 		u_short port=0;
 		int client_sock=-1;
 		struct sockaddr_in client_name;
+		pthread_t thread_id; //线程参数
 		socklen_t client_name_len = sizeof(client_name);
 		
 
@@ -19,6 +20,7 @@ int main(void)
 				if(client_sock==-1)
 						error_die("accept");
 				accept_request(client_sock);
+				pthread_create(&thread_id,NULL,(void *)accept_request,&client_sock);
 		}
 
 		close(server_sock);
