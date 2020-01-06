@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 #define ISspace(x) isspace((int)(x))  
   
